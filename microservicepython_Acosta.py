@@ -5,6 +5,8 @@
 import pika
 import MySQLdb
 import json
+import sys
+import time
 
 
 class Microservice:
@@ -13,15 +15,15 @@ class Microservice:
     def microserviceLogic ():
 
         try:
-            db = MySQLdb.connect(host="xx.xx.xx.xx", user="root", passwd="xxxx", db="microservice")        
+            firstarg=sys.argv[1]
+            db = MySQLdb.connect(host="35.198.0.8", user="root", passwd="root2018", db="microservice")        
             cur = db.cursor()
-
-            cur.execute("SELECT * FROM persons")
-
-            for row in cur.fetchall():
-                print (json.dumps(row, indent=4, sort_keys=True, default=str))
+            fechaCreacion= time.strftime('%Y-%m-%d')
+            cur.execute("INSERT INTO `microservice`.`proveedor` VALUES (null,2,'"+sys.argv[1]+"','"+sys.argv[2]+"','"+sys.argv[3]+"','"+sys.argv[4]+"','"+sys.argv[5]+"','"+sys.argv[6]+"','"+sys.argv[7]+"','"+fechaCreacion+"','Activo')")
+            db.commit()
             db.close()
-
+            print ("Registro agregado con exito..")
+#Secuencia de entrada en la shell ("Diego" "Acosta" "3108802491" "cra102" "eragon232@hotmail.com" "www.diego.com" "8120674")
         except IOError as e:
 
             print ("Error BD: ".format(e.errno, e.strerror))
