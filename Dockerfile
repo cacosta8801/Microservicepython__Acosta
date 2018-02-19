@@ -2,7 +2,7 @@ FROM ubuntu:16.04
 
 
 EXPOSE 5002:5002
-CMD python microservicepython.py
+CMD python microservicepython_Acosta.py
 
 ADD . /code
 WORKDIR /code
