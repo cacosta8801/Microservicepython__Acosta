@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 
 
-EXPOSE 5001
+EXPOSE 5002:5002
 CMD python microservicepython.py
 
 ADD . /code
@@ -14,3 +14,4 @@ RUN apt-get install -y --no-install-recommends python-mysqldb
 RUN pip install pymysql
 RUN pip install mysqlclient
 RUN pip install pika
+RUN pip install Flask

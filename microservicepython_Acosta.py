@@ -1,55 +1,61 @@
-#!/usr/bin/python
-#pip install mysqlclient
-#pythonmicroservice.c7v0hpe7htge.us-east-2.rds.amazonaws.com
-#pythonmicroservice.c7v0hpe7htge.us-east-2.rds.amazonaws.cox
+﻿#!/usr/bin/python
+# -*- coding: utf-8 -*-
+from flask import Flask, request #import main Flask class and request object
 import pika
 import MySQLdb
 import json
 import sys
 import time
-
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from urlparse import parse_qs
+import cgi
 
 class Microservice:
     
     @staticmethod
-    def microserviceLogic ():
+    def microserviceLogic (nombre,apellido,celular,direccion,correo,pagina,telefono):
 
         try:
-            firstarg=sys.argv[1]
+
             db = MySQLdb.connect(host="35.198.0.8", user="root", passwd="root2018", db="microservice")        
             cur = db.cursor()
             fechaCreacion= time.strftime('%Y-%m-%d')
-            cur.execute("INSERT INTO `microservice`.`proveedor` VALUES (null,2,'"+sys.argv[1]+"','"+sys.argv[2]+"','"+sys.argv[3]+"','"+sys.argv[4]+"','"+sys.argv[5]+"','"+sys.argv[6]+"','"+sys.argv[7]+"','"+fechaCreacion+"','Activo')")
+            cur.execute("INSERT INTO `microservice`.`proveedor` VALUES (null,2,'"+nombre+"','"+apellido+"','"+celular+"','"+direccion+"','"+correo+"','"+pagina+"','"+telefono+"','"+fechaCreacion+"','Activo')")
             db.commit()
+            
+        except IOError as e:
+            db.rollback()
             db.close()
-            print ("Registro agregado con exito..")
-#Secuencia de entrada en la shell ("Diego" "Acosta" "3108802491" "cra102" "eragon232@hotmail.com" "www.diego.com" "8120674")
-        except IOError as e:
+            return "Error BD: ".format(e.errno, e.strerror)
+            
+        db.close() 
 
-            print ("Error BD: ".format(e.errno, e.strerror))
+        return {"id":str(cur.lastrowid)  ,"nombre": nombre+' '+apellido} 
 
-    @staticmethod
-    def queuePublishMessage ():
-        try:
+app = Flask(__name__)
+@app.route('/microservicio/registrar_provedor', methods=['POST'])
 
-            credentials = pika.PlainCredentials('test', 'test')
-            parameters = pika.ConnectionParameters('192.168.56.7',5672,'/',credentials)
-            connection = pika.BlockingConnection(parameters)
+def registrar_provedor ():
 
-            channel = connection.channel()
-            channel.queue_declare(queue='micro_sv')
-            channel.basic_publish(exchange='',routing_key='micro_sv',body='Hello World!')
-            print(" [x] Sent 'Hello World!'")
-            connection.close()
+    if request.method == "POST":
+
+      req_data = request.get_json()
+      nombre = req_data['nombre']
+      apellido = req_data['apellido']
+      celular = req_data['celular']
+      direccion = req_data['direccion']
+      correo = req_data['correo']
+      pagina = req_data['pagina']
+      telefono = req_data['telefono']
+      
+      data = Microservice.microserviceLogic(nombre,apellido,celular,direccion,correo,pagina,telefono)
+      
+      response = {} 
+      response['proveedor_info'] = "Proveedor "+data["nombre"]+" persistido."
+      response['msg'] = 'Hecho'
+
+      return json.dumps(response)
 
 
-        except IOError as e:
-            print ("Error Queue: ".format(e.errno, e.strerror))
-
-        
-
-Microservice.microserviceLogic()
-#Microservice.queuePublishMessage()
-
-   
-
+if __name__ == '__main__':
+    app.run(host="localhost", debug=True, port=5002)
